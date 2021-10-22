@@ -1,8 +1,9 @@
 package fsread
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,6 +26,22 @@ func NewFSRead(basedir string) *FS {
 	}
 }
 
+// isTxtFile checking content file type
+func isTxtFile(name string) bool {
+	file, err := os.Open(name)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	buffer := make([]byte, 512)
+	n, err := file.Read(buffer)
+	if err != nil && err != io.EOF {
+		log.Fatal(err)
+	}
+	contentType := http.DetectContentType(buffer[:n])
+	return strings.HasPrefix(contentType, "text/")
+}
+
 // getKV read file tree in KVPair fileName->Content
 // basedir starting directory
 func getKV(basedir string) []KVPair {
@@ -38,18 +55,22 @@ func getKV(basedir string) []KVPair {
 				log.Fatal(err)
 			}
 			if !info.IsDir() {
-				content, err := ioutil.ReadFile(path)
-				if err != nil {
-					log.Fatal(err)
+				if !strings.Contains(path, ".git") { // exclude files from .git dir(if exist)
+					if isTxtFile(path) { // filtering by content type
+						content, err := os.ReadFile(path)
+						if err != nil {
+							log.Fatal(err)
+						}
+						if strings.HasSuffix(string(content), "\n") {
+							content = []byte(strings.TrimSuffix(string(content), "\n"))
+						}
+						kvp := KVPair{
+							Key:   strings.TrimPrefix(path, basedir),
+							Value: string(content),
+						}
+						output = append(output, kvp)
+					}
 				}
-				if strings.HasSuffix(string(content), "\n") {
-					content = []byte(strings.TrimSuffix(string(content), "\n"))
-				}
-				kvp := KVPair{
-					Key:   strings.TrimPrefix(path, basedir),
-					Value: string(content),
-				}
-				output = append(output, kvp)
 			}
 			return nil
 		})
