@@ -45,7 +45,8 @@ func NewConsulClient(addr string, token string, prefix string) *ConsulClient {
 }
 
 // isKeyInArray check Consul key exist in fsread kv array
-// key: consul key
+//
+// key: consul key,
 // kv: fs KVPair fileName->Content
 func isKeyInArray(key string, kv []fs.KVPair) bool {
 	for _, v := range kv {
@@ -57,7 +58,8 @@ func isKeyInArray(key string, kv []fs.KVPair) bool {
 }
 
 // isKVInArray check file exist in Consul KV
-// k - fs KVPair fileName->Content
+//
+// k - fs KVPair fileName->Content,
 // consulKV - list all Consul KV with prefix
 func isKVInArray(k fs.KVPair, consulKV []fs.KVPair) bool {
 	for _, kv := range consulKV {
@@ -69,7 +71,8 @@ func isKVInArray(k fs.KVPair, consulKV []fs.KVPair) bool {
 }
 
 // getKVTxnOps format fs.KVPair list to Consul KVTxnOps for transaction commit
-// kv - fs KVPair fileName->Content
+//
+// kv - KVPair fileName->Content,
 // prefix - start element for Consul KV-tree
 func getKVTxnOps(kv []fs.KVPair, prefix string) api.KVTxnOps {
 	var output []*api.KVTxnOp
@@ -124,8 +127,8 @@ func getConsulKV(prefix string) []fs.KVPair {
 	return output
 }
 
-// SyncKV apply transaction in Consul KV
-// https://www.consul.io/api-docs/txn
+// SyncKV apply transaction in Consul KV https://www.consul.io/api-docs/txn
+//
 // kv - list of fs KVPair fileName->Content
 func (cc *ConsulClient) SyncKV(kv []fs.KVPair) error {
 	data := getKVTxnOps(kv, cc.prefix)
@@ -136,26 +139,23 @@ func (cc *ConsulClient) SyncKV(kv []fs.KVPair) error {
 	log.Println("INFO: These changes will be apply")
 	s, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		log.Fatalf("ERROR: %s\n", err.Error())
+		return err
 	}
 	log.Print(string(s))
 	log.Println("TRANSACTION START")
 	ckv := client.KV()
 	ok, response, _, err := ckv.Txn(data, nil)
 	if err != nil {
-		log.Println("FATAL: " + err.Error())
 		return err
 	}
 	log.Printf("STATE: %t\n", ok)
 	if !ok {
 		log.Fatal("ERROR: TRANSACTION ROLLED BACK")
-		return err
 	}
 	log.Println("TRANSACTION COMMIT")
 	log.Println("APPLIED KV KEYS:")
 	s, err = json.MarshalIndent(response.Results, "", "  ")
 	if err != nil {
-		log.Fatalf("ERROR: %s\n", err.Error())
 		return err
 	}
 	log.Print(string(s))

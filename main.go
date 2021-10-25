@@ -36,6 +36,7 @@ func main() {
 	consul := consulclient.NewConsulClient(consulAddr, consulToken, consulPrefix)
 	err := consul.SyncKV(fs.KV)
 	if err != nil {
+		log.Print(err.Error())
 		log.Panic("PANIC: fs and KV not sync!!!")
 	}
 }

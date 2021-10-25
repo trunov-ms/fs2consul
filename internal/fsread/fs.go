@@ -28,13 +28,13 @@ func NewFSRead(basedir string) *FS {
 
 // isTxtFile checking content file type
 func isTxtFile(name string) bool {
-	file, err := os.Open(name)
+	f, err := os.Open(name)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer file.Close()
+	defer f.Close()
 	buffer := make([]byte, 512)
-	n, err := file.Read(buffer)
+	n, err := f.Read(buffer)
 	if err != nil && err != io.EOF {
 		log.Fatal(err)
 	}
@@ -43,23 +43,18 @@ func isTxtFile(name string) bool {
 }
 
 // getKV read file tree in KVPair fileName->Content
-// basedir starting directory
+//
+// basedir - starting directory
 func getKV(basedir string) []KVPair {
 	var output []KVPair
 	err := filepath.Walk(basedir,
 		func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
 			if !info.IsDir() {
 				if !strings.Contains(path, ".git") { // exclude files from .git dir(if exist)
 					if isTxtFile(path) { // filtering by content type
 						content, err := os.ReadFile(path)
 						if err != nil {
-							log.Fatal(err)
+							return err
 						}
 						if strings.HasSuffix(string(content), "\n") {
 							content = []byte(strings.TrimSuffix(string(content), "\n"))

@@ -8,9 +8,7 @@ ENV GOOS=linux \
     GOARCH=amd64 \
     CGO_ENABLED=0
 
-RUN mkdir -p /app && \
-    go get && \
-    go build -ldflags="-w -s" -o /app/fs2consul
+RUN mkdir -p /app && go get && go build -ldflags="-w -s" -o /app/fs2consul
 
 FROM busybox:latest as app
 
