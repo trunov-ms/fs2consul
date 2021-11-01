@@ -130,7 +130,7 @@ func getConsulKV(prefix string) []fs.KVPair {
 // SyncKV apply transaction in Consul KV https://www.consul.io/api-docs/txn
 //
 // kv - list of fs KVPair fileName->Content
-func (cc *ConsulClient) SyncKV(kv []fs.KVPair) error {
+func (cc *ConsulClient) SyncKV(kv []fs.KVPair, sync bool) error {
 	data := getKVTxnOps(kv, cc.prefix)
 	if len(data) == 0 {
 		log.Println("INFO: Nothing to commit. FS and KV are sync!!!")
@@ -142,25 +142,27 @@ func (cc *ConsulClient) SyncKV(kv []fs.KVPair) error {
 		return err
 	}
 	log.Print(string(s))
-	log.Println("TRANSACTION START")
 	ckv := client.KV()
-	ok, response, _, err := ckv.Txn(data, nil)
-	if err != nil {
-		return err
-	}
-	log.Printf("STATE: %t\n", ok)
-	if !ok {
-		log.Fatal("ERROR: TRANSACTION ROLLED BACK")
-	}
-	log.Println("TRANSACTION COMMIT")
-	log.Println("APPLIED KV KEYS:")
-	s, err = json.MarshalIndent(response.Results, "", "  ")
-	if err != nil {
-		return err
-	}
-	log.Print(string(s))
-	for _, res := range response.Errors {
-		log.Printf("%s\n", res.What)
+	if sync {
+		log.Println("TRANSACTION START")
+		ok, response, _, err := ckv.Txn(data, nil)
+		if err != nil {
+			return err
+		}
+		log.Printf("STATE: %t\n", ok)
+		if !ok {
+			log.Fatal("ERROR: TRANSACTION ROLLED BACK")
+		}
+		log.Println("TRANSACTION COMMIT")
+		log.Println("APPLIED KV KEYS:")
+		s, err = json.MarshalIndent(response.Results, "", "  ")
+		if err != nil {
+			return err
+		}
+		log.Print(string(s))
+		for _, res := range response.Errors {
+			log.Printf("%s\n", res.What)
+		}
 	}
 	return nil
 }

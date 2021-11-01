@@ -9,12 +9,14 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 3 {
+	if len(os.Args) < 4 {
 		log.Printf(`
       Usage:
-        %[1]s fs_dir consul_prefix
+        %[1]s <get-diff|apply> <fs_dir> <consul_prefix>
+			get-diff show difference between Consul KV and directiry
+			apply sync data
       Example:
-        %[1]s fs/consul/kv/dir/ /services/`, os.Args[0])
+        %[1]s get-diff fs/consul/kv/dir/ /services/`, os.Args[0])
 		os.Exit(1)
 	}
 	consulAddr, exist := os.LookupEnv("CONSUL_ADDR")
@@ -22,7 +24,8 @@ func main() {
 	if !(exist && existToken) {
 		log.Fatal("Environment variables CONSUL_ADDR or CONSUL_TOKEN must be defined")
 	}
-	args := os.Args[1:]
+	command := os.Args[1]
+	args := os.Args[2:]
 	basedir := args[0]
 	consulPrefix := args[1]
 	if !strings.HasSuffix(consulPrefix, "/") {
@@ -34,9 +37,14 @@ func main() {
 	basedir = strings.TrimPrefix(basedir, "./")
 	fs := fsread.NewFSRead(basedir)
 	consul := consulclient.NewConsulClient(consulAddr, consulToken, consulPrefix)
-	err := consul.SyncKV(fs.KV)
-	if err != nil {
-		log.Print(err.Error())
-		log.Panic("PANIC: fs and KV not sync!!!")
+	if strings.Compare(command, "apply") == 0 {
+		err := consul.SyncKV(fs.KV, true)
+		if err != nil {
+			log.Print(err.Error())
+			log.Panic("PANIC: fs and KV not sync!!!")
+		}
+	} else if strings.Compare(command, "get-diff") == 0 {
+		consul.SyncKV(fs.KV, false)
 	}
+
 }
