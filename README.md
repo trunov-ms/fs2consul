@@ -8,12 +8,12 @@ All changes apply in single transaction with [Consul Txn API](https://www.consul
 
 ## Usage
 
-`fs2consul ./path/to/dir/ consul/kv/prefix`
+`fs2consul <get-diff|apply> <./path/to/dir/> <consul/kv/prefix>`
 
 ## Example
 
 ```bash
 export CONSUL_ADDR=http://localhost:8500
 export CONSUL_TOKEN=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
-fs2consul ./consul-kv.git/ /services/
+fs2consul apply ./consul-kv.git/ /services/
 ```
