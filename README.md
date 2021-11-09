@@ -13,7 +13,7 @@ All changes apply in single transaction with [Consul Txn API](https://www.consul
 ## Example
 
 ```bash
-export CONSUL_ADDR=http://localhost:8500
-export CONSUL_TOKEN=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+export CONSUL_HTTP_ADDR=http://localhost:8500
+export CONSUL_HTTP_TOKEN=aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
 fs2consul apply ./consul-kv.git/ /services/
 ```

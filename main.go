@@ -19,8 +19,8 @@ func main() {
         %[1]s get-diff fs/consul/kv/dir/ /services/`, os.Args[0])
 		os.Exit(1)
 	}
-	consulAddr, exist := os.LookupEnv("CONSUL_ADDR")
-	consulToken, existToken := os.LookupEnv("CONSUL_TOKEN")
+	consulAddr, exist := os.LookupEnv("CONSUL_HTTP_ADDR")
+	consulToken, existToken := os.LookupEnv("CONSUL_HTTP_TOKEN")
 	if !(exist && existToken) {
 		log.Fatal("Environment variables CONSUL_ADDR or CONSUL_TOKEN must be defined")
 	}
@@ -46,5 +46,4 @@ func main() {
 	} else if strings.Compare(command, "get-diff") == 0 {
 		consul.SyncKV(fs.KV, false)
 	}
-
 }
