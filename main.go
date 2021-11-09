@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"fs2consul/internal/consulclient"
 	"fs2consul/internal/fsread"
 	"log"
@@ -10,19 +11,24 @@ import (
 
 func main() {
 	if len(os.Args) < 4 {
-		log.Printf(`
-      Usage:
-        %[1]s <get-diff|apply> <fs_dir> <consul_prefix>
-			get-diff show difference between Consul KV and directiry
-			apply sync data
-      Example:
-        %[1]s get-diff fs/consul/kv/dir/ /services/`, os.Args[0])
+		fmt.Printf(`
+	  Requirements
+	  Environment variables:
+		CONSUL_HTTP_ADDR - your Consul address. Ex.: http://consul.local:8500
+		CONSUL_HTTP_TOKEN - token with rw permission on prefix path
+	  Usage
+		%[1]s <get-diff|apply> <fs_dir> <consul_prefix>
+		get-diff show difference between Consul KV and directiry
+		apply sync data
+	  Example
+		%[1]s get-diff fs/consul/kv/dir/ /services/%s`, os.Args[0], "\n")
 		os.Exit(1)
 	}
+
 	consulAddr, exist := os.LookupEnv("CONSUL_HTTP_ADDR")
 	consulToken, existToken := os.LookupEnv("CONSUL_HTTP_TOKEN")
 	if !(exist && existToken) {
-		log.Fatal("Environment variables CONSUL_ADDR or CONSUL_TOKEN must be defined")
+		log.Fatal("Environment variables CONSUL_ADDR or CONSUL_HTTP_TOKEN must be defined")
 	}
 	command := os.Args[1]
 	args := os.Args[2:]
